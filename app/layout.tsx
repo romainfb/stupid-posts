@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Idées de Merde",
+  title: "Docker - Idées de Merde",
   description: "Une collection des idées les plus absurdes et inutiles du web",
 };
 
