@@ -1,0 +1,34 @@
+name: Deploy frontend and backend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Copy repo to server
+        run: |
+          rsync -avz --delete -e "ssh -i ~/.ssh/id_ed25519" ./ \
+            ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/srv/docker/docker-sdv-devideas
+
+      - name: Deploy with Docker Compose
+        run: |
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            cd /srv/docker/docker-sdv-devideas
+            docker compose build --no-cache
+            docker compose up -d
+          EOF
