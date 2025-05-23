@@ -93,7 +93,7 @@ export default function Home() {
         </main>
 
         <footer className="mt-16 pt-8 border-t border-black/[.08] dark:border-white/[.08] text-center text-sm text-foreground/50">
-          <p>© {new Date().getFullYear()} Idées de Merde - Tous droits réservés</p>
+          <p>© {new Date().getFullYear()} Idées de Merde | Docker - Tous droits réservés</p>
         </footer>
       </div>
     </div>
