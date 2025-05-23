@@ -1,4 +1,4 @@
-name: Deploy to VPS
+name: Deploy to server
 
 on:
   push:
@@ -13,23 +13,53 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Copy frontend to VPS via rsync
+      - name: List frontend content (debug)
+        run: ls -la frontend/
+
+      - name: Copy frontend folder to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: frontend/*
+          port: 22
+          source: frontend/
           target: /srv/docker/docker-sdv-devideas/frontend
           strip_components: 1
 
-      - name: Trigger build on VPS via SSH
-        uses: appleboy/ssh-action@v1.0.0
+      - name: Copy backend_data folder to server
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          source: backend_data/
+          target: /srv/docker/docker-sdv-devideas/backend_data
+          strip_components: 1
+
+      - name: Copy backend docker-compose and backend files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          source: |
+            docker-compose.yml
+            backend/
+          target: /srv/docker/docker-sdv-devideas/
+          strip_components: 0
+
+      - name: Restart docker-compose on server
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
           script: |
             cd /srv/docker/docker-sdv-devideas
-            docker compose build frontend
-            docker compose up -d frontend
+            docker-compose pull
+            docker-compose up -d --build
+            docker system prune -f
